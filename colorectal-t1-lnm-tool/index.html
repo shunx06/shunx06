@@ -185,6 +185,37 @@
     margin-left: 6px;
     vertical-align: middle;
   }
+  .no-score-fieldset {
+    border: 1px dashed var(--gridline);
+    border-radius: 12px;
+    padding: 12px 14px;
+  }
+  .no-score-hint {
+    color: var(--text-secondary);
+  }
+  .no-effect-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--status-warning);
+    border: 1px solid color-mix(in srgb, var(--status-warning) 45%, transparent);
+    border-radius: 999px;
+    padding: 1px 7px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  .lit-note {
+    margin-top: 16px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--series-blue) 8%, var(--surface-1));
+    border: 1px solid color-mix(in srgb, var(--series-blue) 25%, transparent);
+    font-size: 12.5px;
+    color: var(--text-secondary);
+  }
+  .lit-note strong { color: var(--text-primary); }
+  .lit-note ul { margin: 6px 0 0; padding-left: 18px; }
+  .lit-note li { margin-bottom: 4px; }
 
   /* Results */
   .badge {
@@ -363,12 +394,12 @@
         <p class="hint">1,000μm（1mm）以上でリスク因子陽性となります。粘膜内癌にとどまる場合や計測不能の場合は空欄のままにしてください。</p>
       </fieldset>
 
-      <fieldset>
+      <fieldset class="no-score-fieldset">
         <legend>参考情報（原ノモグラムの追加因子）<span class="optional-tag">任意</span></legend>
-        <p class="hint">下記2項目は Kajiwara ら (2023) のノモグラムに含まれる因子ですが、本ツールの確率計算には用いていません（下部「本ツールの限界」参照）。</p>
+        <p class="hint no-score-hint">⚠️ 下記2項目は<strong>リスクの%レンジには反映されません</strong>。理由: 大腸癌研究会の実際のノモグラム（Kajiwara ら 2023）はこれらを含みますが、その係数は非公開のため再現できません。また性別・占居部位の影響は文献間でも方向性が一致していないため、恣意的な数値化を避けています。選択すると右側の「評価結果」に関連する文献情報を表示します。</p>
         <div style="display:flex; gap:14px; flex-wrap:wrap;">
           <div>
-            <label style="font-size:12.5px; font-weight:600; display:block; margin-bottom:4px;">性別</label>
+            <label style="font-size:12.5px; font-weight:600; display:block; margin-bottom:4px;">性別<span class="no-effect-tag">数値に反映されません</span></label>
             <select id="sex">
               <option value="">未選択</option>
               <option value="male">男性</option>
@@ -376,7 +407,7 @@
             </select>
           </div>
           <div>
-            <label style="font-size:12.5px; font-weight:600; display:block; margin-bottom:4px;">腫瘍占居部位</label>
+            <label style="font-size:12.5px; font-weight:600; display:block; margin-bottom:4px;">腫瘍占居部位<span class="no-effect-tag">数値に反映されません</span></label>
             <select id="location">
               <option value="">未選択</option>
               <option value="right">右側結腸</option>
@@ -411,6 +442,8 @@
         </div>
         <p class="explain" id="explain-text"></p>
       </div>
+
+      <div class="lit-note" id="lit-note" style="display:none;"></div>
     </div>
 
   </div>
@@ -467,6 +500,35 @@
     renderBadge(guidelinePositive);
     renderFactorList(factors, smUnknown);
     renderMeter(positiveCount, smOnlyPositive);
+    renderLitNote($('#sex').value, $('#location').value);
+  }
+
+  const SEX_NOTES = {
+    male: '性別（男性）を選択中: 性別の影響については研究間で結果が一致していません。多変量解析で<strong>女性であること</strong>がリンパ節転移の危険因子とされた研究がある一方、有意差を認めない研究もあります。',
+    female: '性別（女性）を選択中: 一部の多施設研究では<strong>女性であること</strong>が多変量解析でリンパ節転移の独立した危険因子とされていますが、他の研究では有意差を認めておらず、結論は一致していません。',
+  };
+  const LOCATION_NOTES = {
+    right: '占居部位（右側結腸）を選択中: 部位による転移率の違いについては報告が分かれており、一致した結論はありません。',
+    left: '占居部位（左側結腸）を選択中: 一部の単施設研究で<strong>左側病変</strong>がリンパ節転移の危険因子とされていますが、他の研究とは結果が一致していません。',
+    rectum: '占居部位（直腸）を選択中: <strong>直腸病変</strong>の方が高リスクとする報告がある一方、直腸以外の病変の方が高リスクとする報告もあり、結論は一致していません。',
+  };
+
+  function renderLitNote(sex, location) {
+    const note = $('#lit-note');
+    const items = [];
+    if (sex && SEX_NOTES[sex]) items.push(SEX_NOTES[sex]);
+    if (location && LOCATION_NOTES[location]) items.push(LOCATION_NOTES[location]);
+
+    if (items.length === 0) {
+      note.style.display = 'none';
+      note.innerHTML = '';
+      return;
+    }
+    note.style.display = 'block';
+    note.innerHTML =
+      '<strong>参考: 性別・占居部位に関する文献メモ</strong>' +
+      '<ul>' + items.map(t => `<li>${t}</li>`).join('') + '</ul>' +
+      '<div style="margin-top:6px;">これらは上記の%レンジには反映されていません。研究ごとに対象集団や統計手法が異なり、方向性・大きさが一致していないためです。</div>';
   }
 
   function renderBadge(positive) {
