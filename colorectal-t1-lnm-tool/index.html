@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>大腸T1癌 リンパ節転移リスク評価ツール</title>
+<style>
+  :root {
+    --surface-1:      #fcfcfb;
+    --page-plane:     #f9f9f7;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --gridline:       #e1e0d9;
+    --baseline:       #c3c2b7;
+    --border:         rgba(11,11,11,0.10);
+    --series-blue:    #2a78d6;
+    --series-blue-l1: #cde2fb;
+    --status-good:     #0ca30c;
+    --status-warning:  #c98500; /* darkened for text contrast on light surface */
+    --status-warning-fill: #fab219;
+    --status-serious:  #ec835a;
+    --status-critical: #d03b3b;
+    --card-radius: 14px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --surface-1:      #1a1a19;
+      --page-plane:     #0d0d0d;
+      --text-primary:   #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted:     #898781;
+      --gridline:       #2c2c2a;
+      --baseline:       #383835;
+      --border:         rgba(255,255,255,0.10);
+      --series-blue:    #3987e5;
+      --series-blue-l1: #184f95;
+      --status-good:     #0ca30c;
+      --status-warning:  #fab219;
+      --status-warning-fill: #fab219;
+      --status-serious:  #ec835a;
+      --status-critical: #e66767;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page-plane);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.6;
+  }
+  .wrap {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 28px 20px 60px;
+  }
+  header.page-header {
+    margin-bottom: 18px;
+  }
+  h1 {
+    font-size: 22px;
+    margin: 0 0 6px;
+    font-weight: 700;
+  }
+  .subtitle {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin: 0;
+  }
+  .disclaimer {
+    background: color-mix(in srgb, var(--status-warning-fill) 16%, var(--surface-1));
+    border: 1px solid color-mix(in srgb, var(--status-warning-fill) 45%, transparent);
+    border-radius: var(--card-radius);
+    padding: 14px 16px;
+    margin: 18px 0;
+    font-size: 13.5px;
+    color: var(--text-primary);
+  }
+  .disclaimer strong { display: block; margin-bottom: 4px; }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    align-items: start;
+  }
+  @media (max-width: 800px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+  .card {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    padding: 18px 20px;
+  }
+  .card h2 {
+    font-size: 15px;
+    margin: 0 0 14px;
+    font-weight: 700;
+  }
+  .card h2 .num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--series-blue);
+    color: white;
+    font-size: 12px;
+    margin-right: 8px;
+  }
+  fieldset {
+    border: none;
+    padding: 0;
+    margin: 0 0 18px;
+  }
+  fieldset:last-child { margin-bottom: 0; }
+  legend {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    padding: 0;
+  }
+  .hint {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 2px 0 8px;
+  }
+  .opt-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  label.opt {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 13.5px;
+    padding: 8px 10px;
+    border: 1px solid var(--gridline);
+    border-radius: 10px;
+    cursor: pointer;
+    background: var(--page-plane);
+  }
+  label.opt:has(input:checked) {
+    border-color: var(--series-blue);
+    background: color-mix(in srgb, var(--series-blue) 10%, var(--surface-1));
+  }
+  label.opt input { margin-top: 3px; accent-color: var(--series-blue); }
+  label.opt .opt-label { font-weight: 600; }
+  label.opt .opt-sub { display: block; color: var(--text-secondary); font-weight: 400; font-size: 12px; margin-top: 2px; }
+  .num-input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  input[type="number"], select {
+    font: inherit;
+    font-size: 14px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--gridline);
+    background: var(--page-plane);
+    color: var(--text-primary);
+    width: 120px;
+  }
+  select { width: auto; min-width: 160px; }
+  .unit { font-size: 13px; color: var(--text-secondary); }
+  .optional-tag {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--text-muted);
+    border: 1px solid var(--gridline);
+    border-radius: 999px;
+    padding: 1px 8px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  /* Results */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 14px;
+  }
+  .badge.good { background: color-mix(in srgb, var(--status-good) 16%, var(--surface-1)); color: var(--status-good); }
+  .badge.critical { background: color-mix(in srgb, var(--status-critical) 14%, var(--surface-1)); color: var(--status-critical); }
+  .badge .dot { width: 9px; height: 9px; border-radius: 50%; background: currentColor; flex: none; }
+
+  .factor-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .factor-list li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13.5px;
+    padding: 7px 10px;
+    border-radius: 8px;
+    background: var(--page-plane);
+  }
+  .factor-list li.positive { color: var(--status-critical); font-weight: 600; }
+  .factor-list li.negative { color: var(--text-secondary); }
+  .factor-list .mark { width: 16px; text-align: center; flex: none; font-weight: 700; }
+
+  .meter-section { margin-top: 6px; }
+  .meter-title {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .meter-caption {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+  .meter-track {
+    position: relative;
+    height: 14px;
+    border-radius: 7px;
+    background: var(--gridline);
+    overflow: visible;
+  }
+  .meter-range {
+    position: absolute;
+    top: 0; bottom: 0;
+    border-radius: 7px;
+    transition: left .25s ease, width .25s ease, background-color .25s ease;
+  }
+  .meter-ticks {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10.5px;
+    color: var(--text-muted);
+    margin-top: 6px;
+  }
+  .meter-readout {
+    margin-top: 14px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .meter-readout .value {
+    font-size: 28px;
+    font-weight: 700;
+  }
+  .meter-readout .tier-label {
+    font-size: 13px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+  }
+  .explain {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 12px;
+  }
+  .sources {
+    margin-top: 24px;
+    font-size: 12.5px;
+    color: var(--text-secondary);
+  }
+  .sources h2 { font-size: 13px; }
+  .sources ol { padding-left: 18px; margin: 8px 0; }
+  .sources li { margin-bottom: 6px; }
+  .sources a { color: var(--series-blue); }
+  footer.note {
+    margin-top: 22px;
+    font-size: 11.5px;
+    color: var(--text-muted);
+    border-top: 1px solid var(--gridline);
+    padding-top: 14px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="page-header">
+    <h1>大腸T1癌 リンパ節転移リスク評価ツール</h1>
+    <p class="subtitle">大腸癌研究会（JSCCR）大腸癌治療ガイドラインのpT1（SM癌）リスク因子に基づく評価補助ツール</p>
+  </header>
+
+  <div class="disclaimer">
+    <strong>本ツールについて（必ずお読みください）</strong>
+    本ツールは大腸癌研究会の大腸癌治療ガイドラインが示すpT1大腸癌のリンパ節転移リスク因子に基づく<b>教育・参考用の簡易ツール</b>です。実際の追加切除の要否は、内視鏡的切除後の病理結果を踏まえ、患者の年齢・併存疾患・希望なども考慮したうえで、必ず主治医・専門医が総合的に判断してください。本ツールの結果は診断・治療方針を確定するものではなく、個々の患者への適用を保証するものでもありません。
+  </div>
+
+  <div class="grid">
+
+    <!-- INPUT CARD -->
+    <div class="card" id="input-card">
+      <h2><span class="num">1</span>病理所見の入力</h2>
+
+      <fieldset>
+        <legend>① 組織型（最深部の優勢な組織型）</legend>
+        <div class="opt-row" data-group="histology">
+          <label class="opt">
+            <input type="radio" name="histology" value="0" checked>
+            <span><span class="opt-label">高分化・中分化管状腺癌</span><span class="opt-sub">tub1 / tub2 など</span></span>
+          </label>
+          <label class="opt">
+            <input type="radio" name="histology" value="1">
+            <span><span class="opt-label">低分化腺癌・印環細胞癌・粘液癌</span><span class="opt-sub">por / sig / muc（リスク因子陽性）</span></span>
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>② 脈管侵襲（ly / v）</legend>
+        <div class="opt-row" data-group="lvi">
+          <label class="opt">
+            <input type="radio" name="lvi" value="0" checked>
+            <span class="opt-label">陰性</span>
+          </label>
+          <label class="opt">
+            <input type="radio" name="lvi" value="1">
+            <span><span class="opt-label">陽性</span><span class="opt-sub">リンパ管侵襲・静脈侵襲いずれかあり（リスク因子陽性）</span></span>
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>③ 簇出（Tumor Budding, 浸潤先進部）</legend>
+        <div class="opt-row" data-group="budding">
+          <label class="opt">
+            <input type="radio" name="budding" value="0" checked>
+            <span><span class="opt-label">Grade 1（低度）</span></span>
+          </label>
+          <label class="opt">
+            <input type="radio" name="budding" value="1">
+            <span><span class="opt-label">Grade 2〜3（高度）</span><span class="opt-sub">リスク因子陽性</span></span>
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>④ 粘膜下層浸潤距離（SM浸潤度）</legend>
+        <div class="num-input-row">
+          <input type="number" id="sm-depth" min="0" step="10" placeholder="例: 1500">
+          <span class="unit">μm</span>
+        </div>
+        <p class="hint">1,000μm（1mm）以上でリスク因子陽性となります。粘膜内癌にとどまる場合や計測不能の場合は空欄のままにしてください。</p>
+      </fieldset>
+
+      <fieldset>
+        <legend>参考情報（原ノモグラムの追加因子）<span class="optional-tag">任意</span></legend>
+        <p class="hint">下記2項目は Kajiwara ら (2023) のノモグラムに含まれる因子ですが、本ツールの確率計算には用いていません（下部「本ツールの限界」参照）。</p>
+        <div style="display:flex; gap:14px; flex-wrap:wrap;">
+          <div>
+            <label style="font-size:12.5px; font-weight:600; display:block; margin-bottom:4px;">性別</label>
+            <select id="sex">
+              <option value="">未選択</option>
+              <option value="male">男性</option>
+              <option value="female">女性</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:12.5px; font-weight:600; display:block; margin-bottom:4px;">腫瘍占居部位</label>
+            <select id="location">
+              <option value="">未選択</option>
+              <option value="right">右側結腸</option>
+              <option value="left">左側結腸</option>
+              <option value="rectum">直腸</option>
+            </select>
+          </div>
+        </div>
+      </fieldset>
+    </div>
+
+    <!-- RESULT CARD -->
+    <div class="card" id="result-card">
+      <h2><span class="num">2</span>評価結果</h2>
+
+      <div id="badge-area"></div>
+
+      <ul class="factor-list" id="factor-list"></ul>
+
+      <div class="meter-section">
+        <div class="meter-title">推定リンパ節転移リスク（目安）</div>
+        <div class="meter-caption">文献報告に基づく大まかなレンジです。個々の患者の実測確率ではありません。</div>
+        <div class="meter-track">
+          <div class="meter-range" id="meter-range"></div>
+        </div>
+        <div class="meter-ticks">
+          <span>0%</span><span>10%</span><span>20%</span><span>30%</span><span>40%以上</span>
+        </div>
+        <div class="meter-readout">
+          <span class="value" id="range-value">–</span>
+          <span class="tier-label" id="tier-label"></span>
+        </div>
+        <p class="explain" id="explain-text"></p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="card sources">
+    <h2>本ツールの根拠と限界</h2>
+    <p>
+      ①〜④の4因子と判定ロジック（いずれか1つでも陽性なら追加外科切除を検討）は、大腸癌研究会の大腸癌治療ガイドラインに準拠しています。一方、リスクの「%レンジ」表示は、公表文献に基づき本ツール独自に設定した簡易的な目安であり、大腸癌研究会が2023年に発表した実際の数量的ノモグラム（Kajiwara Y, Oka S, et al. の点数表・回帰式）をそのまま再現したものではありません。同ノモグラムは性別・腫瘍占居部位を含む多変量モデルから患者個別の確率を算出するもので、AUC 0.83程度の予測能が報告されています。精密な個別確率が必要な場合は、原著論文または医療機関で提供されている公式のノモグラム／計算ツールをご利用のうえ、必ず専門医にご相談ください。
+    </p>
+    <h2 style="margin-top:14px;">参考文献</h2>
+    <ol>
+      <li>Kajiwara Y, Oka S, Tanaka S, et al. Nomogram as a novel predictive tool for lymph node metastasis in T1 colorectal cancer treated with endoscopic resection: a nationwide, multicenter study. <em>Gastrointest Endosc.</em> 2023;97(6):1119-1128. <a href="https://doi.org/10.1016/j.gie.2023.01.022" target="_blank" rel="noopener">doi:10.1016/j.gie.2023.01.022</a></li>
+      <li>大腸癌研究会（編）大腸癌治療ガイドライン 医師用. <a href="https://www.jsccr.jp/guideline/" target="_blank" rel="noopener">https://www.jsccr.jp/guideline/</a></li>
+      <li>大腸癌研究会 pT1大腸癌の研究プロジェクト. <a href="https://www.jsccr.jp/achievement/Committee/pt1.html" target="_blank" rel="noopener">https://www.jsccr.jp/achievement/Committee/pt1.html</a></li>
+    </ol>
+  </div>
+
+  <footer class="note">
+    本ツールは医療機器ではなく、診断・治療の代替となるものではありません。計算結果や入力内容はブラウザ内でのみ処理され、外部送信・保存はされません。
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  const $ = (sel, root=document) => root.querySelector(sel);
+  const groups = ['histology', 'lvi', 'budding'];
+
+  function getRadioValue(name) {
+    const el = document.querySelector(`input[name="${name}"]:checked`);
+    return el ? el.value === '1' : false;
+  }
+
+  function evaluate() {
+    const poorDiff = getRadioValue('histology');
+    const lvi = getRadioValue('lvi');
+    const budding = getRadioValue('budding');
+    const smInput = $('#sm-depth').value;
+    const smDepth = smInput === '' ? null : Number(smInput);
+    const smPositive = smDepth !== null && !Number.isNaN(smDepth) && smDepth >= 1000;
+    const smUnknown = smInput === '';
+
+    const factors = [
+      { label: '① 組織型（低分化腺癌・印環細胞癌・粘液癌）', positive: poorDiff, key: 'histology' },
+      { label: '② 脈管侵襲（ly / v）', positive: lvi, key: 'lvi' },
+      { label: '③ 簇出（Tumor Budding Grade 2〜3）', positive: budding, key: 'budding' },
+      { label: smUnknown ? '④ SM浸潤度（未入力）' : `④ SM浸潤度（${smDepth}μm）`, positive: smPositive, key: 'sm' },
+    ];
+
+    const positiveCount = factors.filter(f => f.positive).length;
+    const guidelinePositive = positiveCount > 0;
+    const smOnlyPositive = positiveCount === 1 && smPositive;
+
+    renderBadge(guidelinePositive);
+    renderFactorList(factors, smUnknown);
+    renderMeter(positiveCount, smOnlyPositive);
+  }
+
+  function renderBadge(positive) {
+    const area = $('#badge-area');
+    area.innerHTML = '';
+    const badge = document.createElement('div');
+    badge.className = 'badge ' + (positive ? 'critical' : 'good');
+    badge.innerHTML = `<span class="dot"></span>` +
+      (positive
+        ? 'ガイドライン判定：追加外科切除を検討'
+        : 'ガイドライン判定：内視鏡切除で経過観察できる可能性が高い');
+    area.appendChild(badge);
+  }
+
+  function renderFactorList(factors, smUnknown) {
+    const list = $('#factor-list');
+    list.innerHTML = '';
+    factors.forEach(f => {
+      const li = document.createElement('li');
+      const isUnknown = f.key === 'sm' && smUnknown;
+      li.className = isUnknown ? 'negative' : (f.positive ? 'positive' : 'negative');
+      li.innerHTML = `<span class="mark">${isUnknown ? '?' : (f.positive ? '●' : '−')}</span>${f.label}`;
+      list.appendChild(li);
+    });
+  }
+
+  // tier => [rangeLow, rangeHigh, colorVar, label]
+  const TIERS = {
+    none:    { lo: 0,  hi: 2,  color: 'var(--status-good)',     label: '低リスク目安' },
+    smOnly:  { lo: 1,  hi: 3,  color: 'var(--status-warning-fill)', label: '低〜中リスク目安' },
+    one:     { lo: 3,  hi: 10, color: 'var(--status-warning-fill)', label: '中リスク目安' },
+    two:     { lo: 8,  hi: 20, color: 'var(--status-serious)',  label: '中〜高リスク目安' },
+    threePlus: { lo: 18, hi: 35, color: 'var(--status-critical)', label: '高リスク目安' },
+  };
+
+  function pickTier(count, smOnly) {
+    if (count === 0) return TIERS.none;
+    if (smOnly) return TIERS.smOnly;
+    if (count === 1) return TIERS.one;
+    if (count === 2) return TIERS.two;
+    return TIERS.threePlus;
+  }
+
+  function renderMeter(count, smOnly) {
+    const tier = pickTier(count, smOnly);
+    const SCALE_MAX = 40; // meter scale caps display at 40%
+    const loPct = Math.min(tier.lo, SCALE_MAX) / SCALE_MAX * 100;
+    const hiPct = Math.min(tier.hi, SCALE_MAX) / SCALE_MAX * 100;
+
+    const rangeEl = $('#meter-range');
+    rangeEl.style.left = loPct + '%';
+    rangeEl.style.width = Math.max(hiPct - loPct, 2) + '%';
+    rangeEl.style.background = tier.color;
+
+    $('#range-value').textContent = `約 ${tier.lo}〜${tier.hi}%`;
+    const tierLabel = $('#tier-label');
+    tierLabel.textContent = tier.label;
+    tierLabel.style.background = `color-mix(in srgb, ${tier.color} 18%, var(--surface-1))`;
+    tierLabel.style.color = tier.color;
+
+    let explain = '';
+    if (count === 0) {
+      explain = '4因子すべて陰性の場合、報告されているリンパ節転移率はおおむね1〜2%程度と低く、内視鏡的切除のみで経過観察となることが多いとされています。';
+    } else if (smOnly) {
+      explain = 'SM浸潤度1,000μm以上のみが単独で陽性の場合、報告されているリンパ節転移率は1〜3%程度と比較的低いとされますが、ガイドライン上は追加切除の適応として検討対象になります。';
+    } else if (count === 1) {
+      explain = 'リスク因子が1つ陽性の場合、報告されているリンパ節転移率はおおむね数%程度とされていますが、どの因子が陽性かにより幅があります。';
+    } else if (count === 2) {
+      explain = 'リスク因子が2つ陽性の場合、リンパ節転移率は10%前後まで上昇すると報告されています。';
+    } else {
+      explain = 'リスク因子が3つ以上陽性の場合、リンパ節転移率は20%を超えるとの報告があり、追加外科切除がより強く推奨される状況です。';
+    }
+    $('#explain-text').textContent = explain;
+  }
+
+  document.addEventListener('change', evaluate);
+  evaluate();
+})();
+</script>
+</body>
+</html>
