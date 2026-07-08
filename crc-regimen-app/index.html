@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>切除不能・再発大腸癌 レジメン推奨支援</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <h1>切除不能・再発大腸癌 化学療法レジメン推奨支援</h1>
+    <p class="subtitle">患者プロファイルから一次治療・後続ライン・必要検査を提示（日本の実臨床／大腸癌治療ガイドライン準拠）</p>
+  </header>
+
+  <div class="disclaimer" role="note">
+    <strong>⚠ 医療者向けの意思決定「支援」ツールです。</strong>
+    本アプリの出力は参考情報であり、診療上の判断・処方を代替するものではありません。
+    最新の添付文書・「大腸癌治療ガイドライン」・保険適用・各施設プロトコルを必ず確認し、
+    最終判断は担当医が行ってください。用量・投与スケジュールは意図的に表示していません。
+  </div>
+
+  <main class="layout">
+    <!-- 入力フォーム -->
+    <section class="panel form-panel" aria-label="患者プロファイル入力">
+      <h2>患者プロファイル</h2>
+      <form id="profile-form">
+        <fieldset>
+          <legend>全身状態</legend>
+          <label>PS（ECOG）
+            <select name="ps">
+              <option value="0-1">0–1（良好）</option>
+              <option value="2">2</option>
+              <option value="3-4">3–4（不良）</option>
+            </select>
+          </label>
+          <label>主要臓器機能／強力な治療の忍容性
+            <select name="organ">
+              <option value="fit">良好（強力な併用に耐えうる）</option>
+              <option value="unfit">低下（減量方針が望ましい）</option>
+            </select>
+          </label>
+          <label>年齢
+            <input type="number" name="age" min="0" max="120" placeholder="例: 68">
+          </label>
+        </fieldset>
+
+        <fieldset>
+          <legend>バイオマーカー</legend>
+          <label>RAS（KRAS/NRAS）
+            <select name="ras">
+              <option value="unknown">未検査</option>
+              <option value="wt">野生型</option>
+              <option value="mut">変異型</option>
+            </select>
+          </label>
+          <label>BRAF V600E
+            <select name="braf">
+              <option value="unknown">未検査</option>
+              <option value="wt">野生型</option>
+              <option value="mut">V600E変異</option>
+            </select>
+          </label>
+          <label>MMR / MSI
+            <select name="msi">
+              <option value="unknown">未検査</option>
+              <option value="mss">MSS / pMMR</option>
+              <option value="msi-h">MSI-H / dMMR</option>
+            </select>
+          </label>
+          <label>HER2
+            <select name="her2">
+              <option value="unknown">未検査</option>
+              <option value="neg">陰性</option>
+              <option value="pos">陽性</option>
+            </select>
+          </label>
+          <label>KRAS G12C
+            <select name="krasG12C">
+              <option value="unknown">未検査</option>
+              <option value="neg">なし</option>
+              <option value="pos">あり</option>
+            </select>
+          </label>
+          <label>UGT1A1 多型（*6, *28）
+            <select name="ugt1a1">
+              <option value="unknown">未検査</option>
+              <option value="wt">野生型</option>
+              <option value="variant">多型あり</option>
+            </select>
+          </label>
+        </fieldset>
+
+        <fieldset>
+          <legend>腫瘍・治療目標</legend>
+          <label>原発占居部位
+            <select name="side">
+              <option value="unknown">不明</option>
+              <option value="left">左側（下行結腸〜直腸）</option>
+              <option value="right">右側（盲腸〜横行結腸）</option>
+            </select>
+          </label>
+          <label>治療目標
+            <select name="goal">
+              <option value="palliative">生命予後延長・QOL維持</option>
+              <option value="conversion">積極的縮小（コンバージョン狙い）</option>
+            </select>
+          </label>
+        </fieldset>
+
+        <fieldset>
+          <legend>治療歴（後続ライン提示の参考）</legend>
+          <label class="check"><input type="checkbox" name="priorOxaliplatin"> オキサリプラチン既治療</label>
+          <label class="check"><input type="checkbox" name="priorIrinotecan"> イリノテカン既治療</label>
+          <label class="check"><input type="checkbox" name="priorBev"> ベバシズマブ既治療</label>
+          <label class="check"><input type="checkbox" name="priorEgfr"> 抗EGFR抗体既治療</label>
+          <label class="check"><input type="checkbox" name="priorIo"> 免疫療法既治療</label>
+        </fieldset>
+
+        <div class="actions">
+          <button type="submit" class="primary">推奨を表示</button>
+          <button type="button" id="reset-btn">リセット</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- 結果表示 -->
+    <section class="panel result-panel" aria-label="推奨結果">
+      <div id="results" class="results-empty">
+        左のプロファイルを入力し「推奨を表示」を押してください。
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>参考骨格: 大腸癌研究会「大腸癌治療ガイドライン 医師用 2024年版」の薬物療法アルゴリズム、および主要臨床試験。
+    本ツールは教育・意思決定支援目的で作成されたものであり、いかなる医療行為の責任も負いません。</p>
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
