@@ -24,10 +24,16 @@ crc-regimen-app/index.html
 
 - **1ファイル版 `mobile.html`**: すべてを1枚に統合した自己完結ファイル。ホスティングやAirDrop等でiPhoneに渡し、Safariで開けます。
 - **ホーム画面に追加**: Safariで開いて共有 → 「ホーム画面に追加」でフルスクリーンのWebアプリ風に使えます（`apple-mobile-web-app-capable` 対応）。
-- **GitHub Pages で公開する場合**: リポジトリの Settings → Pages でこのディレクトリを公開すると、`https://<ユーザー名>.github.io/...` からiPhoneのSafariで直接開けます。
+- **GitHub Pages で公開（ログイン不要の公開URL）**:
+  1. リポジトリの Settings → Pages → Source を「Deploy from a branch」
+  2. Branch を `claude/colorectal-cancer-regimen-app-e3v7d6`、フォルダを **`/docs`** に設定して Save
+  3. 1〜2分後、`https://shunx06.github.io/shunx06/` で開けます
 
-> `index.html`（複数ファイル版）と `mobile.html`（1ファイル版）は同一内容です。`mobile.html` は
-> `data.js` / `engine.js` / `app.js` / `styles.css` を機械的に結合して生成しています。
+  公開元を **`/docs` に限定**しているため、リポジトリ直下の個人ファイル（`plan.md`・`daily-log/`）はPages上に公開されません。
+
+> `index.html`（複数ファイル版）・`mobile.html`（1ファイル版）・`../docs/index.html`（Pages公開用）は
+> 同一内容です。`mobile.html` / `docs/index.html` は `data.js` / `engine.js` / `app.js` / `styles.css` を
+> 機械的に結合して生成しています。更新時は元ファイルを編集してから再生成してください。
 
 ## 判断ロジックの骨格
 

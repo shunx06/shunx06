@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0d6e9e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CRCレジメン">
+<meta name="format-detection" content="telephone=no">
+<title>切除不能・再発大腸癌 レジメン推奨支援</title>
+<style>
+:root {
+  --bg: #f4f6f9;
+  --panel: #ffffff;
+  --ink: #1c2530;
+  --muted: #5b6b7b;
+  --line: #dde3ea;
+  --accent: #0d6e9e;
+  --accent-soft: #e6f2f8;
+  --warn-bg: #fff4e5;
+  --warn-line: #f0b429;
+  --info-bg: #e8f0fe;
+  --info-line: #1f6feb;
+  --ok: #1a7f5a;
+  --ok-bg: #e3f5ec;
+  --bad: #b3261e;
+  --bad-bg: #fdecec;
+  --radius: 10px;
+  --shadow: 0 1px 3px rgba(20, 30, 45, .08), 0 4px 14px rgba(20, 30, 45, .05);
+  font-family: system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Noto Sans JP", sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0e161d;
+    --panel: #16222c;
+    --ink: #e6edf3;
+    --muted: #9fb0be;
+    --line: #29394a;
+    --accent: #3ba7d6;
+    --accent-soft: #12303f;
+    --warn-bg: #33280f;
+    --warn-line: #d1a02e;
+    --info-bg: #12303f;
+    --info-line: #3ba7d6;
+    --ok: #4fbf93;
+    --ok-bg: #123a2c;
+    --bad: #f28b82;
+    --bad-bg: #3a1a17;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.6;
+  -webkit-text-size-adjust: 100%;
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+.site-header {
+  padding: 20px 24px 8px;
+}
+.site-header h1 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+.subtitle {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: .9rem;
+}
+
+.disclaimer {
+  margin: 12px 24px;
+  padding: 12px 16px;
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-line);
+  border-left-width: 5px;
+  border-radius: var(--radius);
+  font-size: .85rem;
+  color: var(--ink);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 20px;
+  padding: 0 24px 40px;
+  align-items: start;
+}
+@media (max-width: 880px) {
+  .layout { grid-template-columns: 1fr; }
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 18px 20px;
+}
+.form-panel { position: sticky; top: 12px; }
+@media (max-width: 880px) {
+  .form-panel { position: static; }
+}
+
+.panel h2 {
+  margin: 0 0 12px;
+  font-size: 1.05rem;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+fieldset {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  margin: 0 0 14px;
+  padding: 10px 12px 14px;
+}
+legend {
+  font-weight: 600;
+  font-size: .85rem;
+  color: var(--accent);
+  padding: 0 6px;
+}
+
+label {
+  display: block;
+  font-size: .8rem;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+label.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: .85rem;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+select, input[type="number"] {
+  display: block;
+  width: 100%;
+  margin-top: 3px;
+  padding: 10px 11px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  /* iOS Safari は 16px 未満のフォーカスで自動ズームするため 16px を維持 */
+  font-size: 16px;
+  color: var(--ink);
+  background: var(--panel);
+  -webkit-appearance: none;
+  appearance: none;
+}
+label.check input { width: auto; margin: 0; }
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+button {
+  cursor: pointer;
+  padding: 12px 18px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  font-size: 1rem;
+  color: var(--ink);
+  min-height: 44px; /* iOS 推奨タップ領域 */
+  touch-action: manipulation;
+}
+.actions .primary { flex: 1; }
+label.check { min-height: 40px; }
+label.check input { width: 22px; height: 22px; }
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+button.primary:hover { filter: brightness(1.05); }
+
+/* 結果表示 */
+.results-empty {
+  color: var(--muted);
+  text-align: center;
+  padding: 60px 20px;
+  font-size: .95rem;
+}
+
+.result-block { margin-bottom: 26px; }
+.result-block > h3 {
+  font-size: 1rem;
+  margin: 0 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.result-block > h3::before {
+  content: "";
+  width: 4px;
+  height: 18px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+.flag {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: .85rem;
+  margin-bottom: 10px;
+  border-left: 4px solid;
+}
+.flag.warn { background: var(--warn-bg); border-color: var(--warn-line); color: var(--ink); }
+.flag.info { background: var(--info-bg); border-color: var(--info-line); color: var(--ink); }
+
+.rec-card {
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  background: var(--panel);
+}
+.rec-card.primary-rec {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.rec-card .rank {
+  display: inline-block;
+  font-size: .72rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--accent);
+  border-radius: 20px;
+  padding: 2px 10px;
+  margin-bottom: 6px;
+}
+.rec-card.primary-rec .rank { background: var(--ok); }
+.rec-card .rec-name {
+  font-weight: 700;
+  font-size: 1rem;
+  margin: 2px 0 4px;
+}
+.rec-card .rec-plus {
+  font-size: .85rem;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+.rec-card .rec-note {
+  font-size: .8rem;
+  color: var(--muted);
+  font-style: italic;
+  margin: 4px 0 8px;
+}
+.rec-card ul { margin: 6px 0 0; padding-left: 20px; }
+.rec-card li { font-size: .85rem; margin-bottom: 4px; }
+
+.seq-item {
+  border-left: 3px solid var(--line);
+  padding: 4px 0 4px 14px;
+  margin-bottom: 14px;
+}
+.seq-item .seq-line {
+  font-weight: 700;
+  font-size: .9rem;
+}
+.seq-item .seq-note {
+  font-size: .78rem;
+  color: var(--muted);
+  margin: 2px 0 4px;
+}
+.seq-item ul { margin: 4px 0 0; padding-left: 18px; }
+.seq-item li { font-size: .83rem; margin-bottom: 3px; }
+
+table.tests {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .82rem;
+}
+table.tests th, table.tests td {
+  text-align: left;
+  padding: 7px 8px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+table.tests th { color: var(--muted); font-weight: 600; }
+.status-pill {
+  display: inline-block;
+  font-size: .72rem;
+  padding: 1px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+.status-pill.done { background: var(--ok-bg); color: var(--ok); }
+.status-pill.todo { background: var(--bad-bg); color: var(--bad); }
+
+.mon-list { margin: 6px 0 0; padding-left: 18px; }
+.mon-list li { font-size: .82rem; margin-bottom: 5px; }
+.mon-list b { color: var(--ink); }
+
+.print-actions { margin-bottom: 16px; }
+.print-actions button { font-size: .82rem; }
+
+</style>
+</head>
+<body>
+<header class="site-header">
+    <h1>切除不能・再発大腸癌 化学療法レジメン推奨支援</h1>
+    <p class="subtitle">患者プロファイルから一次治療・後続ライン・必要検査を提示（日本の実臨床／大腸癌治療ガイドライン準拠）</p>
+  </header>
+
+  <div class="disclaimer" role="note">
+    <strong>⚠ 医療者向けの意思決定「支援」ツールです。</strong>
+    本アプリの出力は参考情報であり、診療上の判断・処方を代替するものではありません。
+    最新の添付文書・「大腸癌治療ガイドライン」・保険適用・各施設プロトコルを必ず確認し、
+    最終判断は担当医が行ってください。用量・投与スケジュールは意図的に表示していません。
+  </div>
+
+  <main class="layout">
+    <!-- 入力フォーム -->
+    <section class="panel form-panel" aria-label="患者プロファイル入力">
+      <h2>患者プロファイル</h2>
+      <form id="profile-form">
+        <fieldset>
+          <legend>全身状態</legend>
+          <label>PS（ECOG）
+            <select name="ps">
+              <option value="0-1">0–1（良好）</option>
+              <option value="2">2</option>
+              <option value="3-4">3–4（不良）</option>
+            </select>
+          </label>
+          <label>主要臓器機能／強力な治療の忍容性
+            <select name="organ">
+              <option value="fit">良好（強力な併用に耐えうる）</option>
+              <option value="unfit">低下（減量方針が望ましい）</option>
+            </select>
+          </label>
+          <label>年齢
+            <input type="number" name="age" min="0" max="120" placeholder="例: 68">
+          </label>
+        </fieldset>
+
+        <fieldset>
+          <legend>バイオマーカー</legend>
+          <label>RAS（KRAS/NRAS）
+            <select name="ras">
+              <option value="unknown">未検査</option>
+              <option value="wt">野生型</option>
+              <option value="mut">変異型</option>
+            </select>
+          </label>
+          <label>BRAF V600E
+            <select name="braf">
+              <option value="unknown">未検査</option>
+              <option value="wt">野生型</option>
+              <option value="mut">V600E変異</option>
+            </select>
+          </label>
+          <label>MMR / MSI
+            <select name="msi">
+              <option value="unknown">未検査</option>
+              <option value="mss">MSS / pMMR</option>
+              <option value="msi-h">MSI-H / dMMR</option>
+            </select>
+          </label>
+          <label>HER2
+            <select name="her2">
+              <option value="unknown">未検査</option>
+              <option value="neg">陰性</option>
+              <option value="pos">陽性</option>
+            </select>
+          </label>
+          <label>KRAS G12C
+            <select name="krasG12C">
+              <option value="unknown">未検査</option>
+              <option value="neg">なし</option>
+              <option value="pos">あり</option>
+            </select>
+          </label>
+          <label>UGT1A1 多型（*6, *28）
+            <select name="ugt1a1">
+              <option value="unknown">未検査</option>
+              <option value="wt">野生型</option>
+              <option value="variant">多型あり</option>
+            </select>
+          </label>
+        </fieldset>
+
+        <fieldset>
+          <legend>腫瘍・治療目標</legend>
+          <label>原発占居部位
+            <select name="side">
+              <option value="unknown">不明</option>
+              <option value="left">左側（下行結腸〜直腸）</option>
+              <option value="right">右側（盲腸〜横行結腸）</option>
+            </select>
+          </label>
+          <label>治療目標
+            <select name="goal">
+              <option value="palliative">生命予後延長・QOL維持</option>
+              <option value="conversion">積極的縮小（コンバージョン狙い）</option>
+            </select>
+          </label>
+        </fieldset>
+
+        <fieldset>
+          <legend>治療歴（後続ライン提示の参考）</legend>
+          <label class="check"><input type="checkbox" name="priorOxaliplatin"> オキサリプラチン既治療</label>
+          <label class="check"><input type="checkbox" name="priorIrinotecan"> イリノテカン既治療</label>
+          <label class="check"><input type="checkbox" name="priorBev"> ベバシズマブ既治療</label>
+          <label class="check"><input type="checkbox" name="priorEgfr"> 抗EGFR抗体既治療</label>
+          <label class="check"><input type="checkbox" name="priorIo"> 免疫療法既治療</label>
+        </fieldset>
+
+        <div class="actions">
+          <button type="submit" class="primary">推奨を表示</button>
+          <button type="button" id="reset-btn">リセット</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- 結果表示 -->
+    <section class="panel result-panel" aria-label="推奨結果">
+      <div id="results" class="results-empty">
+        左のプロファイルを入力し「推奨を表示」を押してください。
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>参考骨格: 大腸癌研究会「大腸癌治療ガイドライン 医師用 2024年版」の薬物療法アルゴリズム、および主要臨床試験。
+    本ツールは教育・意思決定支援目的で作成されたものであり、いかなる医療行為の責任も負いません。</p>
+  </footer>
+<script>
+/*
+ * data.js — 切除不能・再発大腸癌 レジメン／検査データベース
+ *
+ * 出典の考え方:
+ *  - 大腸癌研究会「大腸癌治療ガイドライン 医師用 2024年版」の薬物療法アルゴリズムを基本骨格とする
+ *  - 主要臨床試験（下記 TRIALS 参照）およびバイオマーカーに基づく標準的な国内実臨床を反映
+ *
+ * ※ 本データは臨床意思決定「支援」のための参考情報であり、最新の添付文書・
+ *   ガイドライン・保険適用を必ず確認すること。用量・スケジュールは記載しない
+ *   （施設プロトコル・体表面積・臓器機能で個別化されるため）。
+ */
+
+// レジメン定義 -----------------------------------------------------------
+// backbone: 細胞傷害性の骨格。 mods: 併用分子標的/免疫。
+const REGIMENS = {
+  // --- 殺細胞性 骨格 ---
+  FOLFOX: {
+    id: 'FOLFOX',
+    name: 'FOLFOX（5-FU/l-LV + オキサリプラチン）',
+    class: 'doublet',
+    key: ['oxaliplatin', 'fluoropyrimidine'],
+    note: 'オキサリプラチン基盤ダブレット。末梢神経障害に注意。',
+  },
+  CAPOX: {
+    id: 'CAPOX',
+    name: 'CAPOX / XELOX（カペシタビン + オキサリプラチン）',
+    class: 'doublet',
+    key: ['oxaliplatin', 'fluoropyrimidine'],
+    note: '経口フッ化ピリミジンを用いる通院しやすいダブレット。手足症候群・下痢に注意。',
+  },
+  SOX: {
+    id: 'SOX',
+    name: 'SOX（S-1 + オキサリプラチン）',
+    class: 'doublet',
+    key: ['oxaliplatin', 'fluoropyrimidine'],
+    note: '国内で汎用されるオキサリプラチン基盤ダブレット。',
+  },
+  FOLFIRI: {
+    id: 'FOLFIRI',
+    name: 'FOLFIRI（5-FU/l-LV + イリノテカン）',
+    class: 'doublet',
+    key: ['irinotecan', 'fluoropyrimidine'],
+    note: 'イリノテカン基盤ダブレット。好中球減少・下痢に注意。UGT1A1確認。',
+  },
+  IRIS: {
+    id: 'IRIS',
+    name: 'IRIS（S-1 + イリノテカン）',
+    class: 'doublet',
+    key: ['irinotecan', 'fluoropyrimidine'],
+    note: 'イリノテカン + S-1 の経口併用ダブレット。UGT1A1確認。',
+  },
+  FOLFOXIRI: {
+    id: 'FOLFOXIRI',
+    name: 'FOLFOXIRI（5-FU/l-LV + オキサリプラチン + イリノテカン）',
+    class: 'triplet',
+    key: ['oxaliplatin', 'irinotecan', 'fluoropyrimidine'],
+    note: '3剤併用トリプレット。奏効・深達度が高い一方で毒性も強く、PS良好・臓器機能良好例に限定。',
+  },
+  FP: {
+    id: 'FP',
+    name: 'フッ化ピリミジン単剤（5-FU/LV・カペシタビン・S-1 いずれか）',
+    class: 'single',
+    key: ['fluoropyrimidine'],
+    note: '毒性を抑えた緩和的レジメン。高齢・PS不良・臓器機能低下例に。',
+  },
+
+  // --- 分子標的（併用） ---
+  BEV: {
+    id: 'BEV',
+    name: 'ベバシズマブ（抗VEGF）',
+    class: 'mab',
+    note: 'RAS/BRAF・左右いずれでも上乗せ可。高血圧・蛋白尿・出血・消化管穿孔・創傷治癒遅延・血栓に注意。手術前後は休薬。',
+  },
+  EGFR: {
+    id: 'EGFR',
+    name: '抗EGFR抗体（セツキシマブ or パニツムマブ）',
+    class: 'mab',
+    note: 'RAS野生型かつBRAF野生型で、原発左側の症例に有用。ざ瘡様皮疹・低Mg血症。右側原発では一次治療の第一選択としない。',
+  },
+  RAM: {
+    id: 'RAM',
+    name: 'ラムシルマブ（抗VEGFR2）',
+    class: 'mab',
+    note: '二次治療でFOLFIRIに併用（一次でオキサリプラチン+bev既治療例）。',
+  },
+  AFL: {
+    id: 'AFL',
+    name: 'アフリベルセプト ベータ（抗VEGF融合蛋白）',
+    class: 'mab',
+    note: '二次治療でFOLFIRIに併用（一次でオキサリプラチン既治療例）。',
+  },
+
+  // --- バイオマーカー特異的 ---
+  PEMBRO: {
+    id: 'PEMBRO',
+    name: 'ペムブロリズマブ（抗PD-1）',
+    class: 'io',
+    note: 'MSI-H/dMMR の一次治療（KEYNOTE-177）。免疫関連有害事象（irAE）に注意。',
+  },
+  NIVO: {
+    id: 'NIVO',
+    name: 'ニボルマブ ± イピリムマブ（抗PD-1 ± 抗CTLA-4）',
+    class: 'io',
+    note: 'MSI-H/dMMR に対する選択肢。irAEに注意。',
+  },
+  ENCO_CET: {
+    id: 'ENCO_CET',
+    name: 'エンコラフェニブ + セツキシマブ（+ ビニメチニブ）',
+    class: 'targeted',
+    note: 'BRAF V600E 変異の既治療例（BEACON CRC）。',
+  },
+  HER2: {
+    id: 'HER2',
+    name: '抗HER2療法（トラスツズマブ + ペルツズマブ / トラスツズマブ デルクステカン）',
+    class: 'targeted',
+    note: 'HER2陽性（RAS/BRAF野生型）の既治療例。T-DXdは間質性肺疾患に注意。',
+  },
+  SOTO_PANI: {
+    id: 'SOTO_PANI',
+    name: 'ソトラシブ + パニツムマブ',
+    class: 'targeted',
+    note: 'KRAS G12C 変異の既治療例（CodeBreaK 300）。',
+  },
+
+  // --- 後方ライン／サルベージ ---
+  REGO: {
+    id: 'REGO',
+    name: 'レゴラフェニブ（マルチキナーゼ阻害）',
+    class: 'salvage',
+    note: '不応・不耐後のサルベージ（CORRECT）。手足皮膚反応・肝機能・高血圧。',
+  },
+  FTD_TPI: {
+    id: 'FTD_TPI',
+    name: 'トリフルリジン・チピラシル（FTD/TPI, Lonsurf）± ベバシズマブ',
+    class: 'salvage',
+    note: 'サルベージ（RECOURSE / SUNLIGHT でbev併用の上乗せ）。骨髄抑制。',
+  },
+  FRUQ: {
+    id: 'FRUQ',
+    name: 'フルキンチニブ（抗VEGFR-TKI）',
+    class: 'salvage',
+    note: '後方ラインのサルベージ選択肢（FRESCO-2）。',
+  },
+  BSC: {
+    id: 'BSC',
+    name: 'ベストサポーティブケア（BSC）／緩和ケア中心',
+    class: 'bsc',
+    note: '全身状態不良で薬物療法の益が見込めない場合。症状緩和とQOLを最優先。',
+  },
+};
+
+// 主要臨床試験の短い注記（根拠の裏付け表示用） -------------------------
+const TRIALS = {
+  'KEYNOTE-177': 'MSI-H mCRC 一次治療でペムブロリズマブが化学療法に対しPFSを延長。',
+  'BEACON': 'BRAF V600E 既治療例でエンコラフェニブ+セツキシマブがOSを改善。',
+  'TRIBE': 'FOLFOXIRI+bev が一次治療でダブレット+bevに対しOS/奏効を改善（毒性は増加）。',
+  'CALGB/SWOG 80405': '左側RAS野生型で抗EGFRが良好、右側では抗VEGFが良好という原発部位差を示唆。',
+  'PARADIGM': 'RAS野生型・左側の一次治療でパニツムマブがベバシズマブに対しOSを改善。',
+  'RAISE': '二次治療でFOLFIRI+ラムシルマブがOSを改善。',
+  'VELOUR': '二次治療でFOLFIRI+アフリベルセプトがOSを改善。',
+  'CORRECT': '標準治療不応例でレゴラフェニブがOSを改善。',
+  'RECOURSE/SUNLIGHT': 'FTD/TPI（±bev）が後方ラインでOSを改善。',
+  'DESTINY-CRC': 'HER2陽性既治療例でT-DXdが有効。',
+  'CodeBreaK 300': 'KRAS G12C 既治療例でソトラシブ+パニツムマブが有効。',
+};
+
+// 検査項目 --------------------------------------------------------------
+// バイオマーカー（治療方針の分岐に必須）
+const BIOMARKER_TESTS = [
+  { id: 'RAS', name: 'RAS遺伝子検査（KRAS/NRAS エクソン2,3,4）', why: '抗EGFR抗体の適応判定に必須。変異型では抗EGFRは無効。' },
+  { id: 'BRAF', name: 'BRAF V600E 変異検査', why: '予後不良因子。変異例では治療強度・後方ラインのBRAF標的療法を検討。' },
+  { id: 'MMR', name: 'MMR蛋白（IHC）／ MSI検査', why: 'MSI-H/dMMR では免疫チェックポイント阻害薬が一次治療から有効。' },
+  { id: 'HER2', name: 'HER2検査（IHC/FISH）', why: 'HER2陽性で抗HER2療法の候補。RAS/BRAF野生型で特に検討。' },
+  { id: 'UGT1A1', name: 'UGT1A1遺伝子多型（*6, *28）', why: 'イリノテカン使用時の重篤な骨髄抑制・下痢リスク評価。' },
+];
+
+// ベースライン全身評価
+const BASELINE_TESTS = [
+  { id: 'cbc', name: '血算（好中球・血小板・Hb）', why: '骨髄機能の確認。治療開始・継続の基準。' },
+  { id: 'chem', name: '生化学（肝機能・腎機能・電解質・Mg・Alb）', why: '薬剤選択・減量・抗EGFRでの低Mg補正など。' },
+  { id: 'tumor', name: '腫瘍マーカー（CEA, CA19-9）', why: '治療効果・再発モニタリングのベースライン。' },
+  { id: 'ct', name: '造影CT（胸腹骨盤）でRECISTベースライン', why: '効果判定の基準病変設定。' },
+  { id: 'hbv', name: 'B型肝炎 screening（HBs抗原・HBc抗体・HBs抗体）', why: '化学療法・免疫療法によるHBV再活性化予防。' },
+  { id: 'cardiac', name: '心機能評価（心疾患既往時／フッ化ピリミジンの冠攣縮）', why: '5-FU・カペシタビンの心毒性リスク評価。' },
+  { id: 'preg', name: '妊娠検査・妊孕性温存の相談（生殖年齢）', why: '催奇形性・性腺毒性への配慮。' },
+];
+
+// レジメン特異的モニタリング
+const MONITORING = {
+  oxaliplatin: '末梢神経障害（累積・寒冷過敏）。程度に応じ休薬・中止（stop-and-go）。',
+  irinotecan: '早発性/遅発性下痢、好中球減少。UGT1A1多型例は特に慎重に。',
+  fluoropyrimidine: '手足症候群、口内炎、下痢、心毒性（冠攣縮）。DPD欠損に注意。',
+  BEV: '血圧・尿蛋白の定期測定、出血・穿孔・血栓・創傷治癒遅延。周術期は休薬。',
+  EGFR: '皮膚症状（ざ瘡様皮疹・爪囲炎）の予防的スキンケア、血清Mg。',
+  io: '免疫関連有害事象（甲状腺・肝・腸炎・肺臓炎・下垂体・皮膚等）を全身で監視。',
+};
+
+</script>
+<script>
+/*
+ * engine.js — レジメン推奨ロジック
+ *
+ * 入力: 患者プロファイル(profile)
+ * 出力: {
+ *   firstLine: [{ regimen, rationale[] }...],
+ *   sequence:  [{ line, options[], note }...],  // 後続ライン戦略
+ *   tests:     { biomarker[], baseline[], monitoring[] },
+ *   flags:     [警告・注意メッセージ],
+ * }
+ *
+ * profile のフィールド:
+ *   ps:        '0-1' | '2' | '3-4'
+ *   organ:     'fit' | 'unfit'          // 主要臓器機能が強力な治療に耐えうるか
+ *   age:       数値
+ *   ras:       'wt' | 'mut' | 'unknown'
+ *   braf:      'wt' | 'mut' | 'unknown'
+ *   msi:       'mss' | 'msi-h' | 'unknown'
+ *   her2:      'pos' | 'neg' | 'unknown'
+ *   krasG12C:  'pos' | 'neg' | 'unknown'
+ *   side:      'left' | 'right' | 'unknown'   // 原発占居部位
+ *   goal:      'conversion' | 'palliative'    // 治療目標
+ *   ugt1a1:    'wt' | 'variant' | 'unknown'
+ *   priorOxaliplatin: bool
+ *   priorIrinotecan:  bool
+ *   priorEgfr:        bool
+ *   priorBev:         bool
+ *   priorIo:          bool
+ */
+
+function recommend(profile) {
+  const flags = [];
+  const R = REGIMENS;
+
+  // ---- 0. 検査未実施のバイオマーカーを警告 ----
+  const missing = [];
+  if (profile.ras === 'unknown') missing.push('RAS');
+  if (profile.braf === 'unknown') missing.push('BRAF V600E');
+  if (profile.msi === 'unknown') missing.push('MMR/MSI');
+  if (missing.length) {
+    flags.push({
+      level: 'warn',
+      text: `未実施のバイオマーカー（${missing.join('・')}）があります。治療方針の分岐に必須のため、治療開始前の測定を強く推奨します。判定不能の項目は「陰性/野生型でない可能性」を残したうえで暫定的に評価しています。`,
+    });
+  }
+
+  // ---- 1. 全身状態による治療強度のトリアージ ----
+  if (profile.ps === '3-4') {
+    return {
+      firstLine: [{
+        regimen: R.BSC,
+        rationale: [
+          'PS 3-4 では細胞傷害性抗がん薬の有害事象リスクが利益を上回りやすく、標準的には薬物療法の適応は限定的です。',
+          'ただしMSI-H/dMMRや、PS低下の主因が腫瘍量そのものである場合など、可逆的な要因があれば個別に免疫療法や減量レジメンを検討します。',
+        ],
+      }],
+      sequence: [{ line: '—', options: ['症状緩和・支持療法を最優先。全身状態が改善すれば薬物療法の再評価を検討。'], note: '' }],
+      tests: buildTests(profile, { minimal: true }),
+      flags: flags.concat([{ level: 'info', text: 'PS改善が得られた場合は、下記バイオマーカーに基づく薬物療法の再評価が可能です。' }]),
+    };
+  }
+
+  // ---- 2. MSI-H/dMMR は最優先で免疫療法 ----
+  if (profile.msi === 'msi-h') {
+    const firstLine = [
+      {
+        regimen: R.PEMBRO,
+        rationale: [
+          'MSI-H/dMMR の切除不能大腸癌では、一次治療から抗PD-1抗体が化学療法を上回るPFSを示しています（KEYNOTE-177）。',
+          'RAS/BRAF の状態や原発部位に関わらず、免疫療法が最優先の選択肢となります。',
+        ],
+      },
+      {
+        regimen: R.NIVO,
+        rationale: ['ニボルマブ（±イピリムマブ）も MSI-H/dMMR に対する有力な選択肢です。'],
+      },
+    ];
+    return {
+      firstLine,
+      sequence: buildSequence(profile, { ioFirst: true }),
+      tests: buildTests(profile),
+      flags: flags.concat([{ level: 'info', text: 'irAE（免疫関連有害事象）に備え、治療開始前の内分泌・肝・呼吸器のベースライン評価を行ってください。' }]),
+    };
+  }
+
+  // ---- 3. MSS/pMMR（または未検査）— 殺細胞性 + 分子標的 ----
+  // 3a. 治療強度の決定
+  const reducedIntensity = profile.ps === '2' || profile.organ === 'unfit';
+  const elderly = typeof profile.age === 'number' && profile.age >= 75;
+
+  // 3b. 併用する分子標的（抗VEGF vs 抗EGFR）の決定
+  const biologic = chooseBiologic(profile, flags);
+
+  const firstLine = [];
+
+  if (reducedIntensity) {
+    // 減量方針: フッ化ピリミジン ± bev
+    flags.push({
+      level: 'info',
+      text: `${profile.ps === '2' ? 'PS 2' : '臓器機能'}を考慮し、毒性を抑えた減量レジメンを基本とします。忍容性を見ながら段階的な強化（オキサリプラチン追加等）も検討可能です。`,
+    });
+    const rationale = [
+      '強力な併用療法の忍容性が懸念されるため、フッ化ピリミジンを基盤とした緩和的レジメンを提示します。',
+    ];
+    if (biologic.id === 'BEV') rationale.push('ベバシズマブの上乗せは毒性の増加が比較的小さく、フッ化ピリミジン単剤への併用が可能です。');
+    firstLine.push({ regimen: R.FP, rationale, plusBiologic: biologic.id === 'BEV' ? R.BEV : null });
+    // 忍容性次第でダブレットも
+    firstLine.push({
+      regimen: R.CAPOX,
+      rationale: ['全身状態が許容すれば、減量したオキサリプラチン基盤ダブレット + ベバシズマブへの強化も選択肢です。'],
+      plusBiologic: R.BEV,
+    });
+  } else if (profile.goal === 'conversion' && profile.braf !== 'mut') {
+    // 積極的縮小狙い（BRAF変異以外）: FOLFOXIRI + bev を軸に
+    firstLine.push({
+      regimen: R.FOLFOXIRI,
+      plusBiologic: R.BEV,
+      rationale: [
+        '腫瘍縮小（コンバージョン／深達奏効）を目標とし、PS・臓器機能が良好なため、奏効率と深達度に優れる3剤併用 + ベバシズマブを軸にします（TRIBE）。',
+        '毒性が強いため、忍容性・年齢・合併症を慎重に評価してください。',
+      ],
+    });
+    // 左側RAS/BRAF野生型なら EGFR併用ダブレットも縮小狙いの有力候補
+    if (biologic.id === 'EGFR') {
+      firstLine.push({
+        regimen: R.FOLFOX,
+        plusBiologic: R.EGFR,
+        rationale: [
+          'RAS/BRAF野生型・左側原発では、抗EGFR抗体併用ダブレットも高い奏効・縮小が期待でき、コンバージョンの有力な選択肢です（PARADIGM）。',
+        ],
+      });
+    } else {
+      firstLine.push({
+        regimen: R.FOLFOX,
+        plusBiologic: R.BEV,
+        rationale: ['3剤併用が過剰と判断される場合は、ダブレット + ベバシズマブでも縮小を狙えます。'],
+      });
+    }
+  } else if (profile.braf === 'mut') {
+    // BRAF V600E: 予後不良、強力併用を検討
+    flags.push({ level: 'warn', text: 'BRAF V600E 変異は予後不良因子です。PS良好例では強力な初期治療を、既治療ではBRAF標的療法（エンコラフェニブ+セツキシマブ）を計画に組み込みます。' });
+    firstLine.push({
+      regimen: R.FOLFOXIRI,
+      plusBiologic: R.BEV,
+      rationale: [
+        'BRAF V600E変異例では予後改善を狙い、忍容性が許せば3剤併用 + ベバシズマブが検討されます。',
+        '抗EGFR抗体はBRAF変異例では単独併用の効果が限定的なため、一次治療の第一選択とはしません。',
+      ],
+    });
+    firstLine.push({
+      regimen: R.FOLFOX,
+      plusBiologic: R.BEV,
+      rationale: ['3剤併用が困難な場合はダブレット + ベバシズマブ。'],
+    });
+  } else {
+    // 標準的な一次治療: ダブレット + 分子標的
+    const backbone = pickDoublet(profile);
+    firstLine.push({
+      regimen: R[backbone],
+      plusBiologic: biologic.id === 'EGFR' ? R.EGFR : R.BEV,
+      rationale: biologicRationale(profile, biologic, backbone),
+    });
+    // 代替の骨格 / 分子標的
+    if (biologic.id === 'EGFR') {
+      firstLine.push({
+        regimen: R[backbone],
+        plusBiologic: R.BEV,
+        rationale: ['ベバシズマブ併用も一次治療の妥当な代替であり、皮膚毒性回避や患者背景により選択されます。'],
+      });
+    }
+  }
+
+  return {
+    firstLine,
+    sequence: buildSequence(profile, { biologic }),
+    tests: buildTests(profile),
+    flags,
+  };
+}
+
+// 抗VEGF / 抗EGFR の選択 ------------------------------------------------
+function chooseBiologic(profile, flags) {
+  const rasWt = profile.ras === 'wt';
+  const brafWt = profile.braf === 'wt';
+  const leftSided = profile.side === 'left';
+
+  if (rasWt && brafWt && leftSided) {
+    return { id: 'EGFR' };
+  }
+  if (rasWt && brafWt && profile.side === 'right') {
+    flags.push({ level: 'info', text: '右側原発では抗EGFR抗体の一次治療効果が左側に劣るため、ベバシズマブ併用を第一選択とします（後方ラインで抗EGFRを温存）。' });
+    return { id: 'BEV' };
+  }
+  if (rasWt && brafWt && profile.side === 'unknown') {
+    flags.push({ level: 'warn', text: 'RAS/BRAF野生型ですが原発部位が未入力です。左側なら抗EGFR、右側ならベバシズマブが目安になるため、占居部位を確認してください。暫定的にベバシズマブを提示します。' });
+    return { id: 'BEV' };
+  }
+  // RAS変異 or BRAF変異 or 未検査 → 抗VEGF
+  return { id: 'BEV' };
+}
+
+// フッ化ピリミジン基盤ダブレットの骨格選択 -----------------------------
+function pickDoublet(profile) {
+  // イリノテカン基盤はUGT1A1多型で注意。一次治療は基本オキサリプラチン基盤を提示。
+  return 'FOLFOX';
+}
+
+function biologicRationale(profile, biologic, backbone) {
+  const r = [];
+  if (biologic.id === 'EGFR') {
+    r.push('RAS野生型・BRAF野生型・左側原発のため、抗EGFR抗体併用ダブレットが一次治療で良好な成績を示します（PARADIGM / CALGB80405）。');
+    r.push('ざ瘡様皮疹・低Mg血症の管理と、予防的スキンケアを計画してください。');
+  } else {
+    if (profile.ras === 'mut') r.push('RAS変異のため抗EGFR抗体は無効であり、ベバシズマブ併用ダブレットが標準です。');
+    else if (profile.braf === 'mut') r.push('BRAF変異のため抗EGFR単独併用の効果は限定的で、ベバシズマブ併用を選択します。');
+    else r.push('ベバシズマブ併用ダブレットは原発部位やRAS状態に依らず標準的に用いられます。');
+    r.push('高血圧・尿蛋白の定期モニタリング、周術期の休薬を計画してください。');
+  }
+  return r;
+}
+
+// 後続ライン戦略 --------------------------------------------------------
+function buildSequence(profile, ctx) {
+  const seq = [];
+  const rasWt = profile.ras === 'wt';
+  const brafMut = profile.braf === 'mut';
+
+  if (ctx.ioFirst) {
+    // MSI-H で一次が免疫療法
+    seq.push({
+      line: '免疫療法後（増悪時）',
+      options: [
+        'MSS例に準じた殺細胞性 + 分子標的（RAS/BRAF・原発部位に基づき FOLFOX/FOLFIRI ± ベバシズマブ／抗EGFR）へ移行。',
+        'BRAF V600E変異があればエンコラフェニブ + セツキシマブを組み込む。',
+      ],
+      note: '一次で免疫療法を用いた場合、二次以降は下記の化学療法アルゴリズムに準じます。',
+    });
+  }
+
+  // 二次治療
+  const second = [];
+  const usedOxFirst = true; // 一次はオキサリプラチン基盤を基本提示
+  second.push('骨格の切り替え: 一次でオキサリプラチン基盤ならFOLFIRI（イリノテカン基盤）へ、逆なら逆へスイッチ。');
+  if (ctx.biologic && ctx.biologic.id === 'BEV') {
+    second.push('抗VEGF継続/切替: ベバシズマブのbeyond PD、またはFOLFIRI + ラムシルマブ（RAISE）／アフリベルセプト（VELOUR）。');
+    if (rasWt && !brafMut) second.push('未使用の抗EGFR抗体（RAS/BRAF野生型）を二次で用いる選択肢。');
+  } else if (ctx.biologic && ctx.biologic.id === 'EGFR') {
+    second.push('抗VEGFへの切替: FOLFIRI + ベバシズマブ／ラムシルマブ／アフリベルセプト。');
+  } else {
+    second.push('RAS/BRAF野生型なら未使用の抗EGFR、変異型ならベバシズマブ継続/切替。');
+  }
+  if (brafMut) second.push('BRAF V600E: エンコラフェニブ + セツキシマブ（BEACON）を二次治療で優先的に検討。');
+  if (profile.her2 === 'pos') second.push('HER2陽性（RAS/BRAF野生型）: 抗HER2療法（トラスツズマブ+ペルツズマブ／T-DXd, DESTINY-CRC）。');
+  if (profile.krasG12C === 'pos') second.push('KRAS G12C: ソトラシブ + パニツムマブ（CodeBreaK 300）。');
+  seq.push({ line: '二次治療', options: second, note: '一次で使用した骨格・分子標的、バイオマーカーに応じて選択します。' });
+
+  // 三次治療
+  const third = [];
+  third.push('未使用の骨格・分子標的（オキサリプラチン↔イリノテカン、抗EGFR/抗VEGF）を可能な限り使い切る。');
+  if (brafMut) third.push('未使用ならBRAF標的療法（エンコラフェニブ+セツキシマブ）。');
+  if (profile.her2 === 'pos') third.push('未使用ならHER2標的療法。');
+  seq.push({ line: '三次治療', options: third, note: '' });
+
+  // サルベージ
+  seq.push({
+    line: 'サルベージ（不応・不耐後）',
+    options: [
+      'レゴラフェニブ（CORRECT）。',
+      'トリフルリジン・チピラシル（FTD/TPI）± ベバシズマブ（RECOURSE / SUNLIGHT）。',
+      'フルキンチニブ（FRESCO-2）。',
+      profile.msi !== 'msi-h' && !profile.priorIo ? '（MSI-H判明時）未使用なら免疫療法。' : null,
+    ].filter(Boolean),
+    note: '全身状態を都度評価し、投与順は忍容性・毒性プロファイルで個別化します。',
+  });
+
+  // CGP
+  seq.push({
+    line: 'がん遺伝子パネル検査（CGP）',
+    options: [
+      '標準治療の終了が見込まれる時期（または不応時）に包括的ゲノムプロファイリングを検討し、治験・適応外を含む治療選択肢を探索。',
+      'HER2増幅・NTRK融合・その他アクショナブル変異が判明すれば対応する分子標的治療／治験へ。',
+    ],
+    note: '実施時期は施設・保険要件に従ってください。',
+  });
+
+  return seq;
+}
+
+// 必要検査の構築 --------------------------------------------------------
+function buildTests(profile, opts) {
+  opts = opts || {};
+  const biomarker = BIOMARKER_TESTS.map((t) => {
+    const status = biomarkerStatus(profile, t.id);
+    return Object.assign({ status }, t);
+  });
+
+  const baseline = BASELINE_TESTS.slice();
+
+  // モニタリング（提示レジメンに関連しうる項目を広めに）
+  const monitoring = [];
+  monitoring.push({ name: 'オキサリプラチン', text: MONITORING.oxaliplatin });
+  monitoring.push({ name: 'イリノテカン', text: MONITORING.irinotecan });
+  monitoring.push({ name: 'フッ化ピリミジン', text: MONITORING.fluoropyrimidine });
+  monitoring.push({ name: 'ベバシズマブ／抗VEGF', text: MONITORING.BEV });
+  if (profile.ras === 'wt' && profile.braf !== 'mut') monitoring.push({ name: '抗EGFR抗体', text: MONITORING.EGFR });
+  if (profile.msi === 'msi-h') monitoring.push({ name: '免疫チェックポイント阻害薬', text: MONITORING.io });
+
+  return { biomarker, baseline, monitoring };
+}
+
+function biomarkerStatus(profile, id) {
+  switch (id) {
+    case 'RAS': return statusLabel(profile.ras, { wt: '野生型', mut: '変異型' });
+    case 'BRAF': return statusLabel(profile.braf, { wt: '野生型', mut: 'V600E変異' });
+    case 'MMR': return statusLabel(profile.msi, { mss: 'MSS/pMMR', 'msi-h': 'MSI-H/dMMR' });
+    case 'HER2': return statusLabel(profile.her2, { pos: '陽性', neg: '陰性' });
+    case 'UGT1A1': return statusLabel(profile.ugt1a1, { wt: '野生型', variant: '多型あり' });
+    default: return '—';
+  }
+}
+
+function statusLabel(val, map) {
+  if (!val || val === 'unknown') return '未検査';
+  return map[val] || val;
+}
+
+if (typeof module !== 'undefined') module.exports = { recommend };
+
+</script>
+<script>
+/* app.js — フォーム入力 → recommend() → 結果描画 */
+
+(function () {
+  const form = document.getElementById('profile-form');
+  const resultsEl = document.getElementById('results');
+  const resetBtn = document.getElementById('reset-btn');
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const profile = readProfile();
+    const result = recommend(profile);
+    render(result, profile);
+    resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  resetBtn.addEventListener('click', function () {
+    form.reset();
+    resultsEl.className = 'results-empty';
+    resultsEl.innerHTML = '左のプロファイルを入力し「推奨を表示」を押してください。';
+  });
+
+  function readProfile() {
+    const fd = new FormData(form);
+    const ageRaw = fd.get('age');
+    return {
+      ps: fd.get('ps'),
+      organ: fd.get('organ'),
+      age: ageRaw ? Number(ageRaw) : null,
+      ras: fd.get('ras'),
+      braf: fd.get('braf'),
+      msi: fd.get('msi'),
+      her2: fd.get('her2'),
+      krasG12C: fd.get('krasG12C'),
+      side: fd.get('side'),
+      goal: fd.get('goal'),
+      ugt1a1: fd.get('ugt1a1'),
+      priorOxaliplatin: fd.get('priorOxaliplatin') === 'on',
+      priorIrinotecan: fd.get('priorIrinotecan') === 'on',
+      priorBev: fd.get('priorBev') === 'on',
+      priorEgfr: fd.get('priorEgfr') === 'on',
+      priorIo: fd.get('priorIo') === 'on',
+    };
+  }
+
+  function render(result, profile) {
+    resultsEl.className = '';
+    const parts = [];
+
+    parts.push(`<div class="print-actions"><button type="button" onclick="window.print()">印刷 / PDF保存</button></div>`);
+
+    // フラグ
+    if (result.flags && result.flags.length) {
+      parts.push('<div class="result-block">');
+      result.flags.forEach((f) => {
+        parts.push(`<div class="flag ${esc(f.level)}">${esc(f.text)}</div>`);
+      });
+      parts.push('</div>');
+    }
+
+    // 一次治療
+    parts.push('<div class="result-block"><h3>推奨レジメン（一次治療）</h3>');
+    result.firstLine.forEach((rec, i) => {
+      parts.push(recCard(rec, i === 0));
+    });
+    parts.push('</div>');
+
+    // 後続ライン
+    if (result.sequence && result.sequence.length) {
+      parts.push('<div class="result-block"><h3>後続ラインの治療戦略</h3>');
+      result.sequence.forEach((s) => {
+        parts.push('<div class="seq-item">');
+        parts.push(`<div class="seq-line">${esc(s.line)}</div>`);
+        if (s.note) parts.push(`<div class="seq-note">${esc(s.note)}</div>`);
+        if (s.options && s.options.length) {
+          parts.push('<ul>');
+          s.options.forEach((o) => parts.push(`<li>${esc(o)}</li>`));
+          parts.push('</ul>');
+        }
+        parts.push('</div>');
+      });
+      parts.push('</div>');
+    }
+
+    // 必要検査
+    const t = result.tests;
+    parts.push('<div class="result-block"><h3>推奨・必要な検査</h3>');
+
+    parts.push('<h4 style="margin:4px 0 6px;font-size:.9rem;">バイオマーカー（治療方針の分岐）</h4>');
+    parts.push('<table class="tests"><thead><tr><th>検査</th><th>状態</th><th>意義</th></tr></thead><tbody>');
+    t.biomarker.forEach((b) => {
+      const done = b.status !== '未検査';
+      const pill = `<span class="status-pill ${done ? 'done' : 'todo'}">${esc(b.status)}</span>`;
+      parts.push(`<tr><td>${esc(b.name)}</td><td>${pill}</td><td>${esc(b.why)}</td></tr>`);
+    });
+    parts.push('</tbody></table>');
+
+    parts.push('<h4 style="margin:14px 0 6px;font-size:.9rem;">治療開始前のベースライン評価</h4>');
+    parts.push('<table class="tests"><tbody>');
+    t.baseline.forEach((b) => {
+      parts.push(`<tr><td style="width:42%">${esc(b.name)}</td><td>${esc(b.why)}</td></tr>`);
+    });
+    parts.push('</tbody></table>');
+
+    parts.push('<h4 style="margin:14px 0 6px;font-size:.9rem;">治療中のモニタリング（提示レジメン関連）</h4>');
+    parts.push('<ul class="mon-list">');
+    t.monitoring.forEach((m) => {
+      parts.push(`<li><b>${esc(m.name)}:</b> ${esc(m.text)}</li>`);
+    });
+    parts.push('</ul>');
+
+    parts.push('</div>');
+
+    // プロファイル要約（記録用）
+    parts.push(profileSummary(profile));
+
+    resultsEl.innerHTML = parts.join('');
+  }
+
+  function recCard(rec, isPrimary) {
+    const r = rec.regimen;
+    const rows = [];
+    rows.push(`<div class="rec-card ${isPrimary ? 'primary-rec' : ''}">`);
+    rows.push(`<span class="rank">${isPrimary ? '第一推奨' : '代替案'}</span>`);
+    rows.push(`<div class="rec-name">${esc(r.name)}</div>`);
+    if (rec.plusBiologic) {
+      rows.push(`<div class="rec-plus">＋ ${esc(rec.plusBiologic.name)}</div>`);
+    }
+    if (r.note) rows.push(`<div class="rec-note">${esc(r.note)}</div>`);
+    if (rec.rationale && rec.rationale.length) {
+      rows.push('<ul>');
+      rec.rationale.forEach((x) => rows.push(`<li>${esc(x)}</li>`));
+      rows.push('</ul>');
+    }
+    rows.push('</div>');
+    return rows.join('');
+  }
+
+  function profileSummary(p) {
+    const map = {
+      ps: { '0-1': 'PS 0-1', '2': 'PS 2', '3-4': 'PS 3-4' },
+      organ: { fit: '臓器機能良好', unfit: '臓器機能低下' },
+      ras: { wt: 'RAS野生型', mut: 'RAS変異', unknown: 'RAS未検査' },
+      braf: { wt: 'BRAF野生型', mut: 'BRAF V600E', unknown: 'BRAF未検査' },
+      msi: { mss: 'MSS/pMMR', 'msi-h': 'MSI-H/dMMR', unknown: 'MSI未検査' },
+      her2: { pos: 'HER2陽性', neg: 'HER2陰性', unknown: 'HER2未検査' },
+      side: { left: '左側原発', right: '右側原発', unknown: '部位不明' },
+      goal: { conversion: 'コンバージョン狙い', palliative: '緩和的' },
+    };
+    const items = [
+      map.ps[p.ps], map.organ[p.organ], p.age ? `${p.age}歳` : null,
+      map.ras[p.ras], map.braf[p.braf], map.msi[p.msi], map.her2[p.her2],
+      map.side[p.side], map.goal[p.goal],
+    ].filter(Boolean);
+    return `<div class="result-block" style="font-size:.78rem;color:var(--muted);border-top:1px solid var(--line);padding-top:10px;">
+      <b>入力プロファイル:</b> ${items.map(esc).join(' / ')}</div>`;
+  }
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, (c) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+    }[c]));
+  }
+})();
+
+</script>
+</body>
+</html>
