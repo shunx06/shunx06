@@ -57,3 +57,8 @@
 
 ## 日々の記録
 `daily-log/YYYY-MM-DD.md` に体重（Eufy）・食事（MyFitnessPal）・トレーニング内容・体感を記録し、毎日フィードバックする。テンプレートは `daily-log/_template.md`。
+数値は `daily-log/data.csv`（週次自動集計の唯一の正）にも1行追記する。
+
+## 週次レポート（自動）
+`scripts/weekly_report.py` が `daily-log/data.csv` と `plan-config.json` を集計し `weekly-report/YYYY-Www.md` を生成する。
+このプラン表（フェーズ日程・カロリー・PFC・週次体重目標）を変更したら、機械可読版 `plan-config.json` も必ず同期する。詳細は `weekly-report/README.md`。
