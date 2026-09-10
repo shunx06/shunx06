@@ -5,11 +5,14 @@
 ## データの流れ
 
 ```
-毎日: 体重 + MyFitnessPalスクショ + トレ一言 を Claude に投げる
-   └→ Claude が daily-log/data.csv（数値）と daily-log/YYYY-MM-DD.md（体感メモ）に追記
-週次: scripts/weekly_report.py が data.csv + plan-config.json を集計
+毎日: iPhoneショートカットが Apple ヘルスケア(体重/体脂肪/kcal/PFC)を読み
+      GitHub の inbox/ にCSV行を送信（詳細は iphone-input-setup.md）
+週次: scripts/ingest_inbox.py が inbox/ を data.csv に取り込み
+   └→ scripts/weekly_report.py が data.csv + plan-config.json を集計
    └→ weekly-report/YYYY-Www.md を生成 → Claude がコーチフィードバックを追記
 ```
+
+手入力する場合は「体重 + MyFitnessPalスクショ + トレ一言」を Claude に投げれば data.csv に追記される（iPhone自動化との併用可）。
 
 ## 数値の唯一の正 = `daily-log/data.csv`
 

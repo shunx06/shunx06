@@ -1,0 +1,2 @@
+# iPhone のショートカットが日次データ(inbox/YYYY-MM-DD-HHmmss.csv)を置く場所。
+# scripts/ingest_inbox.py が data.csv に取り込み後、ファイルは削除される。
